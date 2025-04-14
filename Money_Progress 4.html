@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>💰 Financial Goal Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #dbeafe, #bfdbfe);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 540px;
+      margin: 50px auto;
+      background-color: #ffffff;
+      padding: 30px 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1e40af;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    small {
+      color: #475569;
+      font-size: 13px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #93c5fd;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    #calculateBtn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 12px 24px;
+      background-color: #3b82f6;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      transition: background 0.3s ease;
+    }
+
+    #calculateBtn:hover {
+      background-color: #2563eb;
+    }
+
+    .result {
+      margin-top: 25px;
+      background-color: #eff6ff;
+      border-left: 5px solid #3b82f6;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-size: 17px;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>💰 Financial Goal Tracker</h2>
+
+    <label for="goal">Goal Amount ($):</label>
+    <input type="number" id="goal" value="5000" />
+    <small>Total amount you want to reach by the selected end date.</small>
+
+    <label for="current">Current Amount ($):</label>
+    <input type="number" id="current" value="0" />
+    <small>How much you've already saved or earned toward your goal.</small>
+
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" />
+    <small>Pick the final day you want to reach your goal by.</small>
+
+    <label for="frequency">View Breakdown:</label>
+    <select id="frequency">
+      <option value="daily">Daily (Business Days)</option>
+      <option value="weekly">Weekly</option>
+      <option value="biweekly">Bi-weekly</option>
+    </select>
+    <small>Choose how you want your required earnings displayed.</small>
+
+    <button id="calculateBtn" onclick="calculate()">Calculate</button>
+
+    <div class="result" id="output"></div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('endDate').value = today;
+    };
+
+    function getBusinessDaysBetween(start, end) {
+      let count = 0;
+      let current = new Date(start);
+
+      while (current <= end) {
+        const day = current.getDay();
+        if (day !== 0 && day !== 6) {
+          count++;
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      return count;
+    }
+
+    function calculate() {
+      const goal = parseFloat(document.getElementById('goal').value);
+      const current = parseFloat(document.getElementById('current').value);
+      const endDateStr = document.getElementById('endDate').value;
+      const frequency = document.getElementById('frequency').value;
+      const output = document.getElementById('output');
+      output.innerHTML = "";
+
+      if (!endDateStr || isNaN(goal) || isNaN(current)) {
+        output.innerText = "⚠️ Please fill in all fields with valid values.";
+        return;
+      }
+
+      const today = new Date();
+      const endDate = new Date(endDateStr);
+
+      if (endDate < today) {
+        output.innerText = "⚠️ End date must be in the future.";
+        return;
+      }
+
+      const businessDays = getBusinessDaysBetween(today, endDate);
+      const weeks = businessDays / 5;
+      const biweeks = businessDays / 10;
+      const remaining = goal - current;
+      const progress = (current / goal) * 100;
+
+      let amountPerPeriod;
+      let label;
+
+      if (frequency === "daily") {
+        amountPerPeriod = remaining / businessDays;
+        label = "per business day";
+      } else if (frequency === "weekly") {
+        amountPerPeriod = remaining / weeks;
+        label = "per week";
+      } else if (frequency === "biweekly") {
+        amountPerPeriod = remaining / biweeks;
+        label = "per bi-weekly period";
+      }
+
+      output.innerHTML = `
+        📅 <strong>${businessDays}</strong> business days remaining<br>
+        💵 You need to earn <strong>$${amountPerPeriod.toFixed(2)}</strong> ${label}<br>
+        ✅ Progress: <strong>${progress.toFixed(2)}%</strong> toward your goal
+      `;
+    }
+  </script>
+
+</body>
+</html>
